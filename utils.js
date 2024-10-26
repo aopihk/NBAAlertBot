@@ -64,41 +64,46 @@ export function sleep(milliseconds) {
 
 export function monitorNBAGames(message, already_pinged){
 
-    var curDate = new Date();
-    let dateToPass = (curDate.getFullYear())+ '-' + ('0' + (curDate.getMonth()+1)).slice(-2) + '-' + ('0' + (curDate.getDate())).slice(-2);
-    console.log(dateToPass);
-    const url = "https://api.balldontlie.io/v1/games?start_date="+dateToPass+"&end_date="+dateToPass;
-    const options = {
-      headers: {
-        Authorization:"test",//balldontlietoken "test",
-        method: 'GET'
-      }
-    };
-    console.log(already_pinged);
-    fetch(url, options).then(res => res.json()).then(data=> {
-        let i = 0;
-        do {
-          let currentGameTime = data["data"][i]["time"];
-          let currentHomeTeamScore = data["data"][i]["home_team_score"];
-          let currentVisitorTeamScore = data["data"][i]["visitor_team_score"];
-           if(currentGameTime != null && !already_pinged.includes(data["data"][i]["home_team"]["full_name"])){
-             const [minutes, seconds] = currentGameTime.split(":").map(Number);
-             if(minutes < 5){
-               console.log("LATE GAME DETECTED");
-               if(Math.abs(currentHomeTeamScore - currentVisitorTeamScore) <= 5){
-                console.log("CRUNCH TIME DETECTED!!!");
-                 console.log(data["data"][i]);
-                 message.channel.send(`<@&966858270004371576>` + " game between: " + data["data"][i]["home_team"]["full_name"] + " and " + data["data"][i]["visitor_team"]["full_name"] + " is close in the last 5 minutes!");
-                 already_pinged.push(data["data"][i]["home_team"]["full_name"]);
-               }
+  var curDate = new Date();
+  let dateToPass = (curDate.getFullYear())+ '-' + ('0' + (curDate.getMonth()+1)).slice(-2) + '-' + ('0' + (curDate.getDate())).slice(-2);
+  console.log(dateToPass);
+  const url = "https://api.balldontlie.io/v1/games?start_date="+dateToPass+"&end_date="+dateToPass;
+  const options = {
+    headers: {
+      Authorization: "0241eab9-252e-457b-8f3a-e8e780f673d9",
+      method: 'GET'
+    }
+  };
+  console.log(already_pinged);
+  fetch(url, options).then(res => res.json()).then(data=> {
+      let i = 0;
+      do {
+        let currentGameTime = data["data"][i]["time"];
+        let currentHomeTeamScore = data["data"][i]["home_team_score"];
+        let currentVisitorTeamScore = data["data"][i]["visitor_team_score"];
+         if(currentGameTime != null && !already_pinged.includes(data["data"][i]["home_team"]["full_name"])){
+           var n = currentGameTime.lastIndexOf(':');
+           var substringTime = currentGameTime.substring(n-2);
+           const [minutes, seconds] = substringTime.split(":").map(Number);
+           var quarter = currentGameTime.charAt(1);
+           console.log(data["data"][i]);
+           console.log(minutes + " " + seconds + " " + quarter);
+           if(minutes < 5 && quarter == 4){
+             console.log("LATE GAME DETECTED");
+             if(Math.abs(currentHomeTeamScore - currentVisitorTeamScore) <= 5){
+              console.log("CRUNCH TIME DETECTED!!!");
+               console.log(data["data"][i]);
+               message.channel.send(`<@&966858270004371576>` + " game between: " + data["data"][i]["home_team"]["full_name"] + " and " + data["data"][i]["visitor_team"]["full_name"] + " is close in the last 5 minutes!");
+               already_pinged.push(data["data"][i]["home_team"]["full_name"]);
              }
-           }
-          i++;
-        } while(i < data["data"].length);
-      }
-    );
+           } 
+         }
+        i++;
+      } while(i < data["data"].length);
+    }
+  );
 
-    return already_pinged;
+  return already_pinged;
 
 
 }
